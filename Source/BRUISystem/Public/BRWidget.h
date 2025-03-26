@@ -1,3 +1,4 @@
+// Copyright Your Company, All Rights Reserved.
 #pragma once
 
 #include "CoreMinimal.h"
@@ -5,7 +6,8 @@
 #include "BRWidget.generated.h"
 
 /**
- * 기본 위젯 클래스 - 모든 UI 요소의 부모
+ * Base widget class for BridgeRun UI System
+ * Provides core functionality for all UI widgets with networking support
  */
 UCLASS(Abstract, Blueprintable)
 class BRUISYSTEM_API UBRWidget : public UUserWidget
@@ -15,33 +17,32 @@ class BRUISYSTEM_API UBRWidget : public UUserWidget
 public:
     UBRWidget(const FObjectInitializer& ObjectInitializer);
 
-    // 위젯 활성화/비활성화 메서드
-    UFUNCTION(BlueprintCallable, Category = "BR_UI")
+    // Lifecycle methods
+    virtual void NativeConstruct() override;
+    virtual void NativeDestruct() override;
+
+    // Activation methods
+    UFUNCTION(BlueprintCallable, Category = "UI|Lifecycle")
     virtual void Activate();
 
-    UFUNCTION(BlueprintCallable, Category = "BR_UI")
+    UFUNCTION(BlueprintCallable, Category = "UI|Lifecycle")
     virtual void Deactivate();
 
-    //// 사운드 재생 기능
-    //UFUNCTION(BlueprintCallable, Category = "BR|UI|Sound")
-    //void PlaySound(class USoundBase* Sound);
-
-    // 위젯 상태 확인
-    UFUNCTION(BlueprintPure, Category = "BR_UI")
+    UFUNCTION(BlueprintPure, Category = "UI|Lifecycle")
     bool IsActive() const { return bIsActive; }
 
+    // Replication support
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 protected:
-    // 위젯 상태
-    UPROPERTY(BlueprintReadOnly, Category = "BR_UI")
-    bool bIsActive = false;
+    // Interface for derived classes to implement
+    UFUNCTION(BlueprintImplementableEvent, Category = "UI|Events")
+    void OnWidgetActivated();
 
-    // 위젯이 활성화 될 때의 이벤트
-    UFUNCTION(BlueprintImplementableEvent, Category = "BR_UI")
-    void OnActivated();
+    UFUNCTION(BlueprintImplementableEvent, Category = "UI|Events")
+    void OnWidgetDeactivated();
 
-    // 위젯이 비활성화 될 때의 이벤트
-    UFUNCTION(BlueprintImplementableEvent, Category = "BR_UI")
-    void OnDeactivated();
-
-    virtual void NativeConstruct() override;
+    // State
+    UPROPERTY(Replicated, BlueprintReadOnly, Category = "UI|State")
+    bool bIsActive;
 };

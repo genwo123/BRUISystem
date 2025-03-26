@@ -1,41 +1,64 @@
 // Copyright Your Company, All Rights Reserved.
-#include "BRWidget.h" 
-#include "Kismet/GameplayStatics.h"
+#include "BRWidget.h"
+#include "Net/UnrealNetwork.h"
 
 UBRWidget::UBRWidget(const FObjectInitializer& ObjectInitializer)
-    : Super(ObjectInitializer)
+    : UUserWidget(ObjectInitializer)
 {
+    bIsActive = false;
 }
 
 void UBRWidget::NativeConstruct()
 {
-    Super::NativeConstruct();
+    UUserWidget::NativeConstruct();
+
+    // Default to collapsed visibility
+    SetVisibility(ESlateVisibility::Collapsed);
+}
+
+void UBRWidget::NativeDestruct()
+{
+    // Ensure proper cleanup
+    if (bIsActive)
+    {
+        Deactivate();
+    }
+
+    UUserWidget::NativeDestruct();
 }
 
 void UBRWidget::Activate()
 {
-    if (!bIsActive)
+    if (bIsActive)
     {
-        bIsActive = true;
-        SetVisibility(ESlateVisibility::Visible);
-        OnActivated();
+        return;
     }
+
+    bIsActive = true;
+    SetVisibility(ESlateVisibility::Visible);
+
+    // Broadcast blueprint event
+    OnWidgetActivated();
 }
 
 void UBRWidget::Deactivate()
 {
-    if (bIsActive)
+    if (!bIsActive)
     {
-        bIsActive = false;
-        SetVisibility(ESlateVisibility::Collapsed);
-        OnDeactivated();
+        return;
     }
+
+    bIsActive = false;
+    SetVisibility(ESlateVisibility::Collapsed);
+
+    // Broadcast blueprint event
+    OnWidgetDeactivated();
 }
 
-//void UBRWidget::PlaySound(USoundBase* Sound)
-//{
-//    if (Sound && IsValid(this) && GetWorld())
-//    {
-//        UGameplayStatics::PlaySound2D(GetWorld(), Sound);
-//    }
-//}
+void UBRWidget::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    // Register replicated properties
+    DOREPLIFETIME(UBRWidget, bIsActive);
+}
