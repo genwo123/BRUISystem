@@ -1,0 +1,52 @@
+# Unreal Engine generated files
+Saved/
+Intermediate/
+DerivedDataCache/
+Binaries/
+Build/
+*.sln
+*.suo
+*.opensdf
+*.sdf
+*.VC.db
+*.VC.opendb
+*.xcodeproj
+*.xcworkspace
+*.sln.DotSettings.user
+
+# Content directory (ignore if you don't want to track assets)
+Content/
+
+# Resources directory (ignore if not needed)
+Resources/
+
+# Intermediate plugin files
+Plugins/*/Intermediate/
+Plugins/*/Binaries/
+
+# Only track specific BRUISystem plugin files
+# Explicitly include only Source and .uplugin files
+Plugins/*
+!Plugins/BRUISystem/
+Plugins/BRUISystem/*
+!Plugins/BRUISystem/Source/
+!Plugins/BRUISystem/*.uplugin
+
+# Visual Studio files
+.vs/
+*.VC.db
+*.user
+*.vscode
+
+# macOS files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Crashlytics generated files
+crashlytics-build.properties
