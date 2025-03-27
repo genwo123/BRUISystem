@@ -29,7 +29,7 @@ void UBRUISubsystem::Deinitialize()
     UE_LOG(LogTemp, Log, TEXT("BRUISubsystem: Deinitialized"));
 }
 
-UBRWidget* UBRUISubsystem::CreateWidget(TSubclassOf<UBRWidget> WidgetClass)
+UBRWidget* UBRUISubsystem::CreateBRWidget(TSubclassOf<UBRWidget> WidgetClass)
 {
     if (!WidgetClass)
     {
@@ -51,15 +51,11 @@ UBRWidget* UBRUISubsystem::CreateWidget(TSubclassOf<UBRWidget> WidgetClass)
         return nullptr;
     }
 
+    // 함수 이름이 다르므로 혼란 없음
     UBRWidget* NewWidget = CreateWidget<UBRWidget>(PC, WidgetClass);
-    if (!NewWidget)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("BRUISubsystem: Failed to create widget"));
-        return nullptr;
-    }
-
     return NewWidget;
 }
+
 
 bool UBRUISubsystem::PushMainWidget(UBRWidget* Widget)
 {
@@ -107,7 +103,7 @@ UBRWidget* UBRUISubsystem::PopPopupWidget()
 
 UBRWidget* UBRUISubsystem::CreateAndPushMainWidget(TSubclassOf<UBRWidget> WidgetClass)
 {
-    UBRWidget* NewWidget = CreateWidget(WidgetClass);
+    UBRWidget* NewWidget = CreateBRWidget(WidgetClass);
     if (!NewWidget)
     {
         return nullptr;
@@ -124,7 +120,7 @@ UBRWidget* UBRUISubsystem::CreateAndPushMainWidget(TSubclassOf<UBRWidget> Widget
 
 UBRWidget* UBRUISubsystem::CreateAndPushPopupWidget(TSubclassOf<UBRWidget> WidgetClass)
 {
-    UBRWidget* NewWidget = CreateWidget(WidgetClass);
+    UBRWidget* NewWidget = CreateBRWidget(WidgetClass);
     if (!NewWidget)
     {
         return nullptr;

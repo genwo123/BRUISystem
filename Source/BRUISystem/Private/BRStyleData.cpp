@@ -1,4 +1,4 @@
-// Copyright Your Company, All Rights Reserved.
+// BRStyleData.cpp
 #include "BRStyleData.h"
 
 FBRButtonStyle::FBRButtonStyle()

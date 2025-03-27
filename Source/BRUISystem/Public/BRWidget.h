@@ -5,11 +5,7 @@
 #include "Blueprint/UserWidget.h"
 #include "BRWidget.generated.h"
 
-/**
- * Base widget class for BridgeRun UI System
- * Provides core functionality for all UI widgets with networking support
- */
-UCLASS(Abstract, Blueprintable)
+UCLASS(Blueprintable, Abstract)
 class BRUISYSTEM_API UBRWidget : public UUserWidget
 {
     GENERATED_BODY()

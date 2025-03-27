@@ -29,6 +29,8 @@ public class BRUISystem : ModuleRules
                 "Engine",
                 "InputCore",
                 "UMG",
+                "Slate",
+                "SlateCore",
                 // ... add other public dependencies that you statically link with here ...
             }
         );
@@ -43,6 +45,7 @@ public class BRUISystem : ModuleRules
                 "RenderCore",
                 "GameplayTags",
                 "Projects",  // IPluginManager를 사용하기 위해 추가
+                "NetCore",   // 네트워크 기능 지원을 위해 추가
                 // ... add private dependencies that you statically link with here ...    
             }
         );
@@ -53,5 +56,12 @@ public class BRUISystem : ModuleRules
                 // ... add any modules that your module loads dynamically here ...
             }
         );
+
+        // 모듈이 런타임에 확실히 로드되도록 정의 추가
+        PublicDefinitions.Add("WITH_BRUISYSTEM=1");
+
+        // 블루프린트에서 사용 가능하도록 설정
+        bLegacyPublicIncludePaths = false;
+        OptimizeCode = CodeOptimization.Never;
     }
 }

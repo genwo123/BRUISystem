@@ -1,4 +1,4 @@
-// Copyright Your Company, All Rights Reserved.
+// BRItemSlot.h
 #pragma once
 
 #include "CoreMinimal.h"
@@ -7,21 +7,16 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemSlotSelected, int32, SlotIndex);
 
-UCLASS()
+UCLASS(Blueprintable, meta = (DisplayName = "BR Item Slot"))
 class BRUISYSTEM_API UBRItemSlot : public UBorder
 {
     GENERATED_BODY()
 
 public:
+    // 기본 생성자 추가
     UBRItemSlot();
 
-    virtual void NativePreConstruct() override;
-    virtual void NativeConstruct() override;
-    virtual void NativeDestruct() override;
-
-    virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
-    virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
-    virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
+    // Border 클래스의 메서드를 오버라이드하지 않음
 
     UFUNCTION(BlueprintCallable, Category = "UI|ItemSlot")
     void SetItemIcon(UTexture2D* InTexture);

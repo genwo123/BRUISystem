@@ -1,51 +1,58 @@
-// Copyright Your Company, All Rights Reserved.
+// BRButton.cpp
 #include "BRButton.h"
-#include "Components/TextBlock.h"
-#include "Components/ButtonSlot.h"
 #include "Kismet/GameplayStatics.h"
 
 UBRButton::UBRButton()
-    : bIsDisabled(false)
-    , bPlaySounds(true)
 {
+    bPlaySounds = true;
+    bIsDisabled = false;
     ButtonStyle = FBRButtonStyle();
+
+    // 기본 이벤트 바인딩
+    OnClicked.AddDynamic(this, &UBRButton::OnButtonClicked);
+    OnHovered.AddDynamic(this, &UBRButton::OnButtonHovered);
+    OnUnhovered.AddDynamic(this, &UBRButton::OnButtonUnhovered);
 }
 
-void UBRButton::NativePreConstruct()
+void UBRButton::SynchronizeProperties()
 {
-    Super::NativePreConstruct();
-
+    Super::SynchronizeProperties();
     UpdateButtonStyle();
+}
 
-    if (!TextBlock)
+void UBRButton::OnButtonClicked()
+{
+    if (!bIsDisabled)
     {
-        TextBlock = NewObject<UTextBlock>(this);
-        if (TextBlock)
+        if (bPlaySounds && ButtonStyle.PressedSound)
         {
-            UButtonSlot* ButtonSlot = Cast<UButtonSlot>(AddChild(TextBlock));
-            if (ButtonSlot)
-            {
-                ButtonSlot->SetHorizontalAlignment(HAlign_Center);
-                ButtonSlot->SetVerticalAlignment(VAlign_Center);
-            }
+            PlaySound(ButtonStyle.PressedSound);
         }
-    }
 
-    if (TextBlock)
+        // 블루프린트 이벤트 호출
+        BP_OnButtonClicked();
+    }
+}
+
+void UBRButton::OnButtonHovered()
+{
+    if (!bIsDisabled)
     {
-        TextBlock->SetText(ButtonText);
-        TextBlock->SetColorAndOpacity(ButtonStyle.TextColor);
+        if (bPlaySounds && ButtonStyle.HoveredSound)
+        {
+            PlaySound(ButtonStyle.HoveredSound);
+        }
+
+        BP_OnButtonHovered();
     }
 }
 
-void UBRButton::NativeConstruct()
+void UBRButton::OnButtonUnhovered()
 {
-    Super::NativeConstruct();
-}
-
-void UBRButton::NativeDestruct()
-{
-    Super::NativeDestruct();
+    if (!bIsDisabled)
+    {
+        BP_OnButtonUnhovered();
+    }
 }
 
 void UBRButton::SetButtonStyle(const FBRButtonStyle& InStyle)
@@ -56,21 +63,16 @@ void UBRButton::SetButtonStyle(const FBRButtonStyle& InStyle)
 
 void UBRButton::SetDisabled(bool bInIsDisabled)
 {
-    if (bIsDisabled != bInIsDisabled)
-    {
-        bIsDisabled = bInIsDisabled;
-        UpdateButtonStyle();
-    }
+    bIsDisabled = bInIsDisabled;
+    UpdateButtonStyle();
+    SetIsEnabled(!bIsDisabled);
 }
 
 void UBRButton::SetButtonText(const FText& InText)
 {
     ButtonText = InText;
-
-    if (TextBlock)
-    {
-        TextBlock->SetText(ButtonText);
-    }
+    // TextBlock이 없으므로 여기서는 아무것도 하지 않음
+    // UButton은 텍스트를 직접 포함하지 않음
 }
 
 FText UBRButton::GetButtonText() const
@@ -78,95 +80,25 @@ FText UBRButton::GetButtonText() const
     return ButtonText;
 }
 
-FReply UBRButton::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
-{
-    if (!bIsDisabled)
-    {
-        SetColorAndOpacity(ButtonStyle.HoveredColor);
-
-        if (bPlaySounds && ButtonStyle.HoveredSound)
-        {
-            PlaySound(ButtonStyle.HoveredSound);
-        }
-    }
-
-    return Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
-}
-
-FReply UBRButton::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
-{
-    if (!bIsDisabled)
-    {
-        SetColorAndOpacity(ButtonStyle.NormalColor);
-    }
-
-    return Super::NativeOnMouseLeave(InMouseEvent);
-}
-
-FReply UBRButton::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
-{
-    if (!bIsDisabled && InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
-    {
-        SetColorAndOpacity(ButtonStyle.PressedColor);
-
-        if (bPlaySounds && ButtonStyle.PressedSound)
-        {
-            PlaySound(ButtonStyle.PressedSound);
-        }
-    }
-
-    return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
-}
-
-FReply UBRButton::NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
-{
-    if (!bIsDisabled && InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
-    {
-        if (IsHovered())
-        {
-            SetColorAndOpacity(ButtonStyle.HoveredColor);
-        }
-        else
-        {
-            SetColorAndOpacity(ButtonStyle.NormalColor);
-        }
-    }
-
-    return Super::NativeOnMouseButtonUp(InGeometry, InMouseEvent);
-}
-
 void UBRButton::UpdateButtonStyle()
 {
     if (bIsDisabled)
     {
         SetColorAndOpacity(ButtonStyle.DisabledColor);
-        if (TextBlock)
-        {
-            TextBlock->SetColorAndOpacity(ButtonStyle.DisabledTextColor);
-        }
     }
     else
     {
         SetColorAndOpacity(ButtonStyle.NormalColor);
-        if (TextBlock)
-        {
-            TextBlock->SetColorAndOpacity(ButtonStyle.TextColor);
-        }
     }
 
-    if (!bIsDisabled)
-    {
-        SetStyle(ButtonStyle.Style);
-    }
-    else
-    {
-        SetStyle(ButtonStyle.DisabledStyle);
-    }
+    // 스타일 속성 적용
+    FButtonStyle SlateStyle = ButtonStyle.Style;
+    SetStyle(SlateStyle);
 }
 
 void UBRButton::PlaySound(USoundBase* Sound)
 {
-    if (Sound && IsValid(this) && GetWorld())
+    if (Sound && GetWorld())
     {
         UGameplayStatics::PlaySound2D(GetWorld(), Sound);
     }

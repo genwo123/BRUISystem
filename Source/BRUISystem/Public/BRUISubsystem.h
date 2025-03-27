@@ -22,7 +22,7 @@ public:
     UBRUIStackManager* GetPopupStackManager() const { return PopupStackManager; }
 
     UFUNCTION(BlueprintCallable, Category = "UI|Subsystem")
-    UBRWidget* CreateWidget(TSubclassOf<UBRWidget> WidgetClass);
+    UBRWidget* CreateBRWidget(TSubclassOf<UBRWidget> WidgetClass);
 
     UFUNCTION(BlueprintCallable, Category = "UI|Subsystem")
     bool PushMainWidget(UBRWidget* Widget);

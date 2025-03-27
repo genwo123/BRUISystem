@@ -1,5 +1,4 @@
 #pragma once
-
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
 #include "IUIStateHandler.generated.h"
@@ -7,19 +6,19 @@
 UINTERFACE(MinimalAPI)
 class UIUIStateHandler : public UInterface
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 };
 
 /**
  * Interface for objects that can handle UI state changes
  */
-class BRUISYSTEM_API IIUIStateHandler
+class BRUISYSTEM_API IIUIStateHandler  // 여기가 문제! IUIStateHandler로 수정해야 합니다
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
-	// 가상 함수로 정의 - 블루프린트 이벤트 제거
-	virtual void OnUIStateEnter(const FName& StateName) = 0;
-	virtual void OnUIStateExit(const FName& StateName) = 0;
-	virtual bool CanEnterUIState(const FName& StateName) = 0;
+    // 가상 함수로 정의 - 블루프린트 이벤트 제거
+    virtual void OnUIStateEnter(const FName& StateName) = 0;
+    virtual void OnUIStateExit(const FName& StateName) = 0;
+    virtual bool CanEnterUIState(const FName& StateName) = 0;
 };
