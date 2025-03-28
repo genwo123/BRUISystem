@@ -1,57 +1,72 @@
-// BRButton.cpp
+// Copyright Your Company, All Rights Reserved.
 #include "BRButton.h"
+#include "Components/Button.h"
+#include "Components/TextBlock.h"
 #include "Kismet/GameplayStatics.h"
 
-UBRButton::UBRButton()
+UBRButton::UBRButton(const FObjectInitializer& ObjectInitializer)
+    : Super(ObjectInitializer)
+    , bIsDisabled(false)
+    , bPlaySounds(true)
 {
-    bPlaySounds = true;
-    bIsDisabled = false;
     ButtonStyle = FBRButtonStyle();
-
-    // 기본 이벤트 바인딩
-    OnClicked.AddDynamic(this, &UBRButton::OnButtonClicked);
-    OnHovered.AddDynamic(this, &UBRButton::OnButtonHovered);
-    OnUnhovered.AddDynamic(this, &UBRButton::OnButtonUnhovered);
 }
 
-void UBRButton::SynchronizeProperties()
+void UBRButton::NativePreConstruct()
 {
-    Super::SynchronizeProperties();
+    Super::NativePreConstruct();
+
+    // 디자이너에서 편집된 값으로 UI 업데이트
+    UpdateButtonStyle();
+
+    if (TextWidget)
+    {
+        TextWidget->SetText(ButtonText);
+    }
+}
+
+void UBRButton::NativeConstruct()
+{
+    Super::NativeConstruct();
+
+    // 버튼 이벤트 바인딩
+    if (ButtonWidget)
+    {
+        ButtonWidget->OnClicked.AddDynamic(this, &UBRButton::HandleButtonClicked);
+        ButtonWidget->OnHovered.AddDynamic(this, &UBRButton::HandleButtonHovered);
+        ButtonWidget->OnUnhovered.AddDynamic(this, &UBRButton::HandleButtonUnhovered);
+    }
+
+    // 텍스트 설정
+    if (TextWidget)
+    {
+        TextWidget->SetText(ButtonText);
+    }
+
+    // 스타일 업데이트
     UpdateButtonStyle();
 }
 
-void UBRButton::OnButtonClicked()
+void UBRButton::NativeDestruct()
 {
-    if (!bIsDisabled)
+    // 버튼 이벤트 바인딩 해제
+    if (ButtonWidget)
     {
-        if (bPlaySounds && ButtonStyle.PressedSound)
-        {
-            PlaySound(ButtonStyle.PressedSound);
-        }
-
-        // 블루프린트 이벤트 호출
-        BP_OnButtonClicked();
+        ButtonWidget->OnClicked.RemoveAll(this);
+        ButtonWidget->OnHovered.RemoveAll(this);
+        ButtonWidget->OnUnhovered.RemoveAll(this);
     }
+
+    Super::NativeDestruct();
 }
 
-void UBRButton::OnButtonHovered()
+void UBRButton::SetButtonText(const FText& InText)
 {
-    if (!bIsDisabled)
-    {
-        if (bPlaySounds && ButtonStyle.HoveredSound)
-        {
-            PlaySound(ButtonStyle.HoveredSound);
-        }
+    ButtonText = InText;
 
-        BP_OnButtonHovered();
-    }
-}
-
-void UBRButton::OnButtonUnhovered()
-{
-    if (!bIsDisabled)
+    if (TextWidget)
     {
-        BP_OnButtonUnhovered();
+        TextWidget->SetText(ButtonText);
     }
 }
 
@@ -63,16 +78,11 @@ void UBRButton::SetButtonStyle(const FBRButtonStyle& InStyle)
 
 void UBRButton::SetDisabled(bool bInIsDisabled)
 {
-    bIsDisabled = bInIsDisabled;
-    UpdateButtonStyle();
-    SetIsEnabled(!bIsDisabled);
-}
-
-void UBRButton::SetButtonText(const FText& InText)
-{
-    ButtonText = InText;
-    // TextBlock이 없으므로 여기서는 아무것도 하지 않음
-    // UButton은 텍스트를 직접 포함하지 않음
+    if (bIsDisabled != bInIsDisabled)
+    {
+        bIsDisabled = bInIsDisabled;
+        UpdateButtonStyle();
+    }
 }
 
 FText UBRButton::GetButtonText() const
@@ -80,20 +90,74 @@ FText UBRButton::GetButtonText() const
     return ButtonText;
 }
 
-void UBRButton::UpdateButtonStyle()
+void UBRButton::HandleButtonClicked()
 {
     if (bIsDisabled)
+        return;
+
+    // 사운드 재생
+    if (bPlaySounds && ButtonStyle.PressedSound)
     {
-        SetColorAndOpacity(ButtonStyle.DisabledColor);
+        PlaySound(ButtonStyle.PressedSound);
+    }
+
+    // 이벤트 호출
+    BP_OnButtonClicked();
+    OnButtonClicked.Broadcast();
+}
+
+void UBRButton::HandleButtonHovered()
+{
+    if (bIsDisabled)
+        return;
+
+    // 사운드 재생
+    if (bPlaySounds && ButtonStyle.HoveredSound)
+    {
+        PlaySound(ButtonStyle.HoveredSound);
+    }
+
+    // 이벤트 호출
+    BP_OnButtonHovered();
+    OnButtonHovered.Broadcast();
+}
+
+void UBRButton::HandleButtonUnhovered()
+{
+    if (bIsDisabled)
+        return;
+
+    // 이벤트 호출
+    BP_OnButtonUnhovered();
+    OnButtonUnhovered.Broadcast();
+}
+
+void UBRButton::UpdateButtonStyle()
+{
+    if (!ButtonWidget)
+        return;
+
+    // 버튼 활성화/비활성화 상태에 따라 스타일 적용
+    if (bIsDisabled)
+    {
+        ButtonWidget->SetColorAndOpacity(ButtonStyle.DisabledColor);
+        ButtonWidget->SetIsEnabled(false);
+
+        if (TextWidget)
+        {
+            TextWidget->SetColorAndOpacity(ButtonStyle.DisabledTextColor);
+        }
     }
     else
     {
-        SetColorAndOpacity(ButtonStyle.NormalColor);
-    }
+        ButtonWidget->SetColorAndOpacity(ButtonStyle.NormalColor);
+        ButtonWidget->SetIsEnabled(true);
 
-    // 스타일 속성 적용
-    FButtonStyle SlateStyle = ButtonStyle.Style;
-    SetStyle(SlateStyle);
+        if (TextWidget)
+        {
+            TextWidget->SetColorAndOpacity(ButtonStyle.TextColor);
+        }
+    }
 }
 
 void UBRButton::PlaySound(USoundBase* Sound)

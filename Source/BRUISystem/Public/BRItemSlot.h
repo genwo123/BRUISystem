@@ -1,23 +1,55 @@
-// BRItemSlot.h
+// Copyright Your Company, All Rights Reserved.
 #pragma once
-
 #include "CoreMinimal.h"
-#include "Components/Border.h"
+#include "Blueprint/UserWidget.h"
 #include "BRItemSlot.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemSlotSelected, int32, SlotIndex);
 
+/**
+ * BRItemSlot - 인벤토리 아이템 슬롯 위젯
+ * 블루프린트에서 쉽게 확장할 수 있도록 설계되었습니다
+ */
 UCLASS(Blueprintable, meta = (DisplayName = "BR Item Slot"))
-class BRUISYSTEM_API UBRItemSlot : public UBorder
+class BRUISYSTEM_API UBRItemSlot : public UUserWidget
 {
     GENERATED_BODY()
 
 public:
-    // 기본 생성자 추가
-    UBRItemSlot();
+    UBRItemSlot(const FObjectInitializer& ObjectInitializer);
 
-    // Border 클래스의 메서드를 오버라이드하지 않음
+    virtual void NativePreConstruct() override;
+    virtual void NativeConstruct() override;
+    virtual void NativeDestruct() override;
 
+    // 슬롯 이벤트 델리게이트
+    UPROPERTY(BlueprintAssignable, Category = "UI|ItemSlot|Event")
+    FOnItemSlotSelected OnSlotSelected;
+
+    // 슬롯 속성
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|ItemSlot")
+    int32 SlotIndex;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|ItemSlot")
+    UTexture2D* ItemIcon;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|ItemSlot")
+    int32 ItemCount;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|ItemSlot")
+    bool bIsSelected;
+
+    // 스타일 속성
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|ItemSlot|Style")
+    FLinearColor NormalColor;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|ItemSlot|Style")
+    FLinearColor HoveredColor;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|ItemSlot|Style")
+    FLinearColor SelectedColor;
+
+    // 슬롯 메서드
     UFUNCTION(BlueprintCallable, Category = "UI|ItemSlot")
     void SetItemIcon(UTexture2D* InTexture);
 
@@ -28,44 +60,43 @@ public:
     void SetSlotIndex(int32 InIndex);
 
     UFUNCTION(BlueprintCallable, Category = "UI|ItemSlot")
-    int32 GetSlotIndex() const { return SlotIndex; }
-
-    UFUNCTION(BlueprintCallable, Category = "UI|ItemSlot")
     void SetSelected(bool bInSelected);
 
-    UFUNCTION(BlueprintCallable, Category = "UI|ItemSlot")
+    UFUNCTION(BlueprintPure, Category = "UI|ItemSlot")
+    int32 GetSlotIndex() const { return SlotIndex; }
+
+    UFUNCTION(BlueprintPure, Category = "UI|ItemSlot")
     bool IsSelected() const { return bIsSelected; }
 
-    UPROPERTY(BlueprintAssignable, Category = "UI|ItemSlot")
-    FOnItemSlotSelected OnSlotSelected;
-
 protected:
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|ItemSlot")
-    int32 SlotIndex;
+    // 블루프린트에서 생성할 위젯 컴포넌트
+    UPROPERTY(BlueprintReadOnly, meta = (BindWidgetOptional), Category = "UI|ItemSlot")
+    class UBorder* BorderWidget;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|ItemSlot")
-    bool bIsSelected;
+    UPROPERTY(BlueprintReadOnly, meta = (BindWidgetOptional), Category = "UI|ItemSlot")
+    class UButton* ButtonWidget;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|ItemSlot")
-    UTexture2D* ItemIcon;
+    UPROPERTY(BlueprintReadOnly, meta = (BindWidgetOptional), Category = "UI|ItemSlot")
+    class UImage* IconWidget;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|ItemSlot")
-    int32 ItemCount;
+    UPROPERTY(BlueprintReadOnly, meta = (BindWidgetOptional), Category = "UI|ItemSlot")
+    class UTextBlock* CountWidget;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|ItemSlot")
-    FLinearColor NormalColor;
+    // 이벤트 핸들러
+    UFUNCTION()
+    void HandleButtonClicked();
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|ItemSlot")
-    FLinearColor HoveredColor;
+    UFUNCTION()
+    void HandleButtonHovered();
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|ItemSlot")
-    FLinearColor SelectedColor;
+    UFUNCTION()
+    void HandleButtonUnhovered();
 
-    UPROPERTY(BlueprintReadOnly, Category = "UI|ItemSlot", meta = (BindWidget))
-    class UImage* IconImage;
+    // 블루프린트에서 오버라이드할 이벤트
+    UFUNCTION(BlueprintImplementableEvent, Category = "UI|ItemSlot")
+    void BP_OnSlotSelected(int32 InSlotIndex);
 
-    UPROPERTY(BlueprintReadOnly, Category = "UI|ItemSlot", meta = (BindWidget))
-    class UTextBlock* CountText;
-
+    // 슬롯 외관 업데이트
+    UFUNCTION(BlueprintCallable, Category = "UI|ItemSlot")
     void UpdateSlotAppearance();
 };
